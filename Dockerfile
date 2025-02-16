@@ -1,28 +1,22 @@
 # syntax = docker/dockerfile:1.2
+
 FROM ubuntu:22.04
 
 SHELL ["/bin/bash", "-c"] 
 WORKDIR /root
 
-ENV LANG=C.UTF-8
+ENV LANG C.UTF-8
 ENV SHELL=/bin/bash
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Install essential packages
-RUN set -eux \
-    && apt-get update -qy \
-    && apt-get install -qyy \
-        -o APT::Install-Recommends=false \
-        -o APT::Install-Suggests=false \
-        ca-certificates \
-        wget \
-        git \
-        gcc \
-        vim \
-        curl \
-        unzip \
-        zip \
-        software-properties-common \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y \
+    software-properties-common \
+    nano \
+    curl \
+    wget \
+    git \
+    git-lfs \
+    gcc
 
 RUN add-apt-repository -y ppa:deadsnakes/ppa && apt-get install -y \
     python3.12 \
@@ -60,5 +54,3 @@ COPY run.sh .
 RUN chmod +x run.sh
 
 EXPOSE 8888 6006
-
-CMD ["/root/run.sh"]
