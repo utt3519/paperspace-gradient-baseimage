@@ -24,9 +24,7 @@ RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
         software-properties-common \
     && rm -rf /var/lib/apt/lists/*
 
-RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    add-apt-repository -y ppa:deadsnakes/ppa && apt-get install -y \
+RUN add-apt-repository -y ppa:deadsnakes/ppa && apt-get install -y \
     python3.12 \
     python3.12-dev \
     python3.12-venv \
