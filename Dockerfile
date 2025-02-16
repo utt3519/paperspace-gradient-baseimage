@@ -1,15 +1,14 @@
 # syntax = docker/dockerfile:1.9
 FROM ubuntu:22.04
 
+SHELL ["/bin/bash", "-c"] 
 WORKDIR /root
 
 ENV LANG=C.UTF-8
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+ENV SHELL=/bin/bash
 
 # Install essential packages
-RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    set -eux \
+RUN set -eux \
     && apt-get update -qy \
     && apt-get install -qyy \
         -o APT::Install-Recommends=false \
