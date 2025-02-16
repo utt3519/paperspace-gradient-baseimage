@@ -16,6 +16,7 @@ RUN set -eux \
         ca-certificates \
         wget \
         git \
+        gcc \
         vim \
         curl \
         unzip \
