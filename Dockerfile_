@@ -1,0 +1,104 @@
+# syntax=docker/dockerfile:1.9
+FROM --platform=linux/amd64 nvidia/cuda:12.8.0-runtime-ubuntu24.04
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+# Set environment variables
+ENV LANG=C.UTF-8 \
+    SHELL=/bin/bash \
+    DEBIAN_FRONTEND=noninteractive \
+    APT_INSTALL="apt-get install -y --no-install-recommends" \
+    GIT_CLONE="git clone --depth 10"
+
+ENV UV_LINK_MODE=copy \
+    UV_COMPILE_BYTECODE=1 \
+    UV_PYTHON_DOWNLOADS=never \
+    UV_PYTHON=python3.12
+
+# Copy uv command from external image
+COPY --from=ghcr.io/astral-sh/uv:0.5.3 /uv /uvx /bin/
+
+# Install essential packages
+RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    set -eux \
+    && apt-get update -qy \
+    && apt-get install -qyy \
+        -o APT::Install-Recommends=false \
+        -o APT::Install-Suggests=false \
+        ca-certificates \
+        wget \
+        rsync \
+        git \
+        vim \
+        curl \
+        openssh-client \
+        unzip \
+        zip \
+        jq \
+        dialog \
+        iputils-ping \
+        sudo \
+        ffmpeg \
+        libsm6 \
+        libxext6 \
+        gnupg \
+        zlib1g \
+        software-properties-common \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install AWS CLI
+RUN set -eux \
+    && curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
+    && unzip awscliv2.zip \
+    && sudo ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update \
+    && rm -rf awscliv2.zip aws
+
+# Install Node.js 20.x
+RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    set -eux \
+    && curl -sL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get update \
+    && $APT_INSTALL nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /notebooks
+
+# Create Python virtual environment
+COPY pyproject.toml .
+RUN --mount=type=cache,target=/root/.cache \ 
+    set -eux && uv venv .venv
+
+# Set PATH to avoid invoking activate
+ENV PATH=/notebooks/.venv/bin:$PATH
+
+# Jupyter requests pyyaml 5.4.*. pyyaml 5.4.1 cannot be built if cython is version 3 or higher.
+# c.f. https://github.com/yaml/pyyaml/issues/724
+# If these lines are missing, `jupyter contrib nbextension install` will fail.
+RUN --mount=type=cache,target=/root/.cache \
+    set -eux \
+    && uv pip install pip setuptools wheel \
+    && uv pip install "cython<3.0.0" \
+    && uv pip install --no-build-isolation pyyaml=="5.4.*"
+
+# Install Jupyter extensions
+RUN --mount=type=cache,target=/root/.cache \
+    set -eux && uv run jupyter contrib nbextension install --user
+
+# Replace jupyter command since jupyter command is not in $PATH
+RUN set -eux && echo '#!/usr/bin/sh\n\nuv run jupyter "$@"' > /usr/local/bin/jupyter && chmod +x /usr/local/bin/jupyter
+
+# Expose ports
+EXPOSE 8888 6006
+
+# Set container startup command
+CMD ["jupyter", "lab", \
+    "--allow-root", \
+    "--ip=0.0.0.0", \
+    "--no-browser", \
+    "--ServerApp.trust_xheaders=True", \
+    "--ServerApp.disable_check_xsrf=False", \
+    "--ServerApp.allow_remote_access=True", \
+    "--ServerApp.allow_origin=*", \
+    "--ServerApp.allow_credentials=True"]

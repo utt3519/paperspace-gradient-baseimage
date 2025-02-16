@@ -1,0 +1,69 @@
+[project]
+name = "ml-environment"
+version = "0.1.0"
+description = "Machine Learning Environment Dependencies"
+requires-python = ">=3.12"
+
+dependencies = [
+    # Deep Learning Frameworks
+    "torch==2.6.0",
+    "torchvision",
+    "torchaudio",
+    "tensorflow",
+
+    # Hugging Face Ecosystem
+    "transformers",
+    "datasets",
+    "peft",
+    "tokenizers",
+    "accelerate",
+    "diffusers",
+    "safetensors",
+
+    # Development Environment
+    "jupyterlab",
+    "jupyterlab-git",
+    "notebook==6.4.12",
+    "traitlets==5.9.0",
+    "jupyter_contrib_nbextensions",
+
+    # Machine Learning & Data Science
+    "bitsandbytes",
+    "cloudpickle",
+    "scikit-image",
+    "scikit-learn",
+    "matplotlib",
+    "ipywidgets",
+    "cython",
+    "tqdm",
+    "gdown",
+    "xgboost",
+    "pillow",
+    "seaborn",
+    "sqlalchemy",
+    "spacy",
+    "nltk",
+    "boto3",
+    "tabulate",
+    "future",
+    "jsonify",
+    "opencv-python",
+    "openpyxl",
+    "pyyaml",
+    "sentence-transformers",
+    "wandb",
+    "deepspeed",
+    "cupy-cuda12x",
+    "timm",
+    "omegaconf",
+    "scipy",
+    "gradient",
+    "attrs"
+]
+
+[build-system]
+requires = ["setuptools", "wheel", "Cython"]
+build-backend = "setuptools.build_meta"
+
+[tool.pip.extra-index-urls]
+torch = "https://download.pytorch.org/whl/cu124"
