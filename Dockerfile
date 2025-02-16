@@ -1,23 +1,32 @@
-# syntax = docker/dockerfile:1.2
+# syntax = docker/dockerfile:1.9
+FROM ubuntu:22.04
 
-FROM nvidia/cuda:12.6.0-cudnn-runtime-ubuntu22.04
-SHELL ["/bin/bash", "-c"] 
 WORKDIR /root
 
-ENV LANG C.UTF-8
-ENV SHELL=/bin/bash
-ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG=C.UTF-8
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-RUN apt-get update && apt-get install -y \
-    software-properties-common \
-    nano \
-    curl \
-    wget \
-    git \
-    git-lfs \
-    gcc
+# Install essential packages
+RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    set -eux \
+    && apt-get update -qy \
+    && apt-get install -qyy \
+        -o APT::Install-Recommends=false \
+        -o APT::Install-Suggests=false \
+        ca-certificates \
+        wget \
+        git \
+        vim \
+        curl \
+        unzip \
+        zip \
+        software-properties-common \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN add-apt-repository -y ppa:deadsnakes/ppa && apt-get install -y \
+RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    add-apt-repository -y ppa:deadsnakes/ppa && apt-get install -y \
     python3.12 \
     python3.12-dev \
     python3.12-venv \
@@ -32,12 +41,12 @@ ENV PIP_ROOT_USER_ACTION=ignore
 
 # https://developer.nvidia.com/cuda-downloads?target_os=Linux&target_arch=x86_64&Distribution=Ubuntu&target_version=22.04&target_type=deb_network
 # https://developer.nvidia.com/cudnn-downloads?target_os=Linux&target_arch=x86_64&Distribution=Ubuntu&target_version=22.04&target_type=deb_network
-# RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
-# RUN dpkg -i cuda-keyring_1.1-1_all.deb
+RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
+RUN dpkg -i cuda-keyring_1.1-1_all.deb
 
-# RUN apt-get update && apt-get install -y \
-#     cuda-toolkit-12-6 \
-#     cudnn
+RUN apt-get update && apt-get install -y \
+    cuda-toolkit-12-6 \
+    cudnn
 
 ENV PATH=$PATH:/usr/local/cuda/bin
 ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
