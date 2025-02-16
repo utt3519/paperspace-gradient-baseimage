@@ -1,4 +1,4 @@
-# syntax = docker/dockerfile:1.9
+# syntax = docker/dockerfile:1.2
 FROM ubuntu:22.04
 
 SHELL ["/bin/bash", "-c"] 
