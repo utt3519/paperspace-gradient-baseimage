@@ -1,6 +1,6 @@
 # syntax = docker/dockerfile:1.2
 
-FROM nvidia/cuda:12.8.0-cudnn-runtime-ubuntu22.04
+FROM nvidia/cuda:12.6.0-cudnn-runtime-ubuntu22.04
 SHELL ["/bin/bash", "-c"] 
 WORKDIR /root
 
@@ -39,8 +39,8 @@ ENV PIP_ROOT_USER_ACTION=ignore
 #     cuda-toolkit-12-6 \
 #     cudnn
 
-# ENV PATH=$PATH:/usr/local/cuda/bin
-# ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+ENV PATH=$PATH:/usr/local/cuda/bin
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 
 RUN python3 -m pip --no-cache-dir install --upgrade \
     jupyterlab \
